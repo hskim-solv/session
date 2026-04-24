@@ -13,6 +13,7 @@ final class HistoryViewModel: ObservableObject {
     @Published var sessions: [PomodoroSession] = []
     @Published var totalFocusMinutesToday: Int = 0
     @Published var completedFocusCountToday: Int = 0
+    @Published var completionRateText: String = "0%"
     @Published var selectedPeriod: Period = .today
     @Published var errorMessage: String?
 
@@ -48,12 +49,34 @@ final class HistoryViewModel: ObservableObject {
             let focus = all.filter { $0.type == .focus }
             totalFocusMinutesToday = focus.map(\.actualMinutes).reduce(0, +)
             completedFocusCountToday = focus.filter(\.isCompleted).count
+            if focus.isEmpty {
+                completionRateText = "0%"
+            } else {
+                let rate = Int((Double(completedFocusCountToday) / Double(focus.count)) * 100)
+                completionRateText = "\(rate)%"
+            }
             errorMessage = nil
         } catch {
             sessions = []
             totalFocusMinutesToday = 0
             completedFocusCountToday = 0
+            completionRateText = "0%"
             errorMessage = "기록을 불러오지 못했어요."
+        }
+    }
+
+    func deleteSessions(at offsets: IndexSet) {
+        let targets = offsets.compactMap { index in
+            sessions.indices.contains(index) ? sessions[index] : nil
+        }
+
+        do {
+            for target in targets {
+                try repository.delete(id: target.id)
+            }
+            load()
+        } catch {
+            errorMessage = "기록 삭제에 실패했어요."
         }
     }
 }

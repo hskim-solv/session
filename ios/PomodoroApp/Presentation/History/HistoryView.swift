@@ -29,6 +29,11 @@ struct HistoryView: View {
                         Spacer()
                         Text("\(viewModel.completedFocusCountToday)회")
                     }
+                    HStack {
+                        Text("완료율")
+                        Spacer()
+                        Text(viewModel.completionRateText)
+                    }
                 }
 
                 Section("세션 기록") {
@@ -45,6 +50,7 @@ struct HistoryView: View {
                                 .foregroundStyle(.secondary)
                         }
                     }
+                    .onDelete(perform: viewModel.deleteSessions)
                 }
 
                 if let errorMessage = viewModel.errorMessage {
